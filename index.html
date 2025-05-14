@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise de Combinações do Dia de Sorte</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        secondary: '#4949ca',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Animações */
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+        
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        /* Combinações destacadas */
+        .combinacao-atrasada {
+            background-color: rgba(220, 38, 38, 0.1);
+            border-left: 4px solid rgba(220, 38, 38, 1);
+        }
+        
+        .combinacao-media {
+            background-color: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid rgba(245, 158, 11, 1);
+        }
+        
+        .combinacao-recente {
+            background-color: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid rgba(16, 185, 129, 1);
+        }
+        
+        /* Status indicador */
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .status-live {
+            background-color: #10b981;
+            box-shadow: 0 0 5px #10b981;
+            animation: pulse 1.5s infinite;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen">
+    <div class="container mx-auto px-4 py-6">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-center text-primary mb-2">Análise de Combinações do Dia de Sorte</h1>
+            <p class="text-center text-gray-600 dark:text-gray-400">
+                Compare combinações teóricas com resultados reais e descubra combinações com maior probabilidade de sair
+            </p>
+            <div class="flex justify-center mt-4">
+                <div class="data-timestamp text-sm text-gray-600 dark:text-gray-400 flex items-center">
+                    <span class="status-indicator status-live"></span>
+                    <span id="lastUpdateTime">Dados atualizados em: Carregando...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Área de controles -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-6">
+            <div class="flex flex-wrap gap-4 items-center mb-6">
+                <button id="loadButton" class="bg-primary hover:bg-secondary text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
+                    Carregar Dados
+                </button>
+                <button id="analisarCombinacoes" class="bg-primary hover:bg-secondary text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
+                    Analisar Combinações
+                </button>
+                <button id="toggleThemeButton" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 px-4 py-2 rounded-lg font-medium transition-colors duration-200">
+                    Alternar Tema
+                </button>
+                <div class="flex items-center">
+                    <label for="tamanhoCombo" class="mr-2 font-medium">Tamanho da combinação:</label>
+                    <select id="tamanhoCombo" class="bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-base">
+                        <option value="3">3 dígitos</option>
+                        <option value="4">4 dígitos</option>
+                        <option value="5">5 dígitos</option>
+                        <option value="6">6 dígitos</option>
+                        <option value="7">7 dígitos</option>
+                        <option value="8">8 dígitos</option>
+                        <option value="9" selected>9 dígitos</option>
+                        <option value="10">10 dígitos</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Status area -->
+            <div id="loadingMessage" class="text-center py-3 px-4 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 pulse hidden">
+                <div class="flex items-center justify-center">
+                    <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Carregando resultados do Dia de Sorte...</span>
+                </div>
+            </div>
+            <div id="completedMessage" class="text-center py-3 px-4 rounded-lg bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-200 hidden">
+                Carregamento concluído!
+            </div>
+            <div id="errorMessage" class="text-center py-3 px-4 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-200 hidden">
+                Erro ao carregar os dados
+            </div>
+        </div>
+
+        <!-- Área de resultados -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Combinações com maior probabilidade -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md col-span-1 lg:col-span-2">
+                <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+                    <h2 class="text-xl font-semibold">Combinações com Maior Probabilidade</h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        Combinações que estão há mais tempo sem aparecer em relação à sua média histórica
+                    </p>
+                </div>
+                <div class="p-6">
+                    <div id="combinacoesAtrasadas" class="space-y-4">
+                        <!-- Será preenchido com as combinações atrasadas -->
+                        <div class="text-center text-gray-500 dark:text-gray-400 py-8">
+                            Clique em "Analisar Combinações" para ver as combinações com maior probabilidade
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estatísticas gerais -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md">
+                <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+                    <h2 class="text-xl font-semibold">Estatísticas Gerais</h2>
+                </div>
+                <div class="p-6">
+                    <div id="estatisticasGerais" class="space-y-4">
+                        <!-- Será preenchido com estatísticas gerais -->
+                        <div class="text-center text-gray-500 dark:text-gray-400 py-8">
+                            Carregue os dados para ver estatísticas
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de todas as combinações -->
+        <div class="mt-6 bg-white dark:bg-gray-800 rounded-xl shadow-md">
+            <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+                <h2 class="text-xl font-semibold">Todas as Combinações</h2>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    Lista completa de combinações possíveis e suas estatísticas
+                </p>
+            </div>
+            <div class="p-6 overflow-x-auto">
+                <table id="todasCombinacoesTabela" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-100 dark:bg-gray-700">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Combinação
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Ocorrências
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Última Aparição
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Média de Intervalo
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Concursos Sem Aparecer
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Probabilidade
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700" id="todasCombinacoesBody">
+                        <!-- Será preenchido com todas as combinações -->
+                        <tr>
+                            <td colspan="7" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                                Carregue os dados e selecione o tamanho da combinação para ver a lista completa
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Últimos resultados -->
+        <div class="mt-6 bg-white dark:bg-gray-800 rounded-xl shadow-md">
+            <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+                <h2 class="text-xl font-semibold">Últimos Resultados</h2>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    Os 10 últimos concursos do Dia de Sorte e suas combinações de dígitos
+                </p>
+            </div>
+            <div class="p-6 overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-100 dark:bg-gray-700">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Concurso
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Data
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Dezenas
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Dígitos Usados
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Qtd. Dígitos
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700" id="ultimosResultadosBody">
+                        <!-- Será preenchido com os últimos resultados -->
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                                Carregue os dados para ver os últimos resultados
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-12 py-6 border-t border-gray-200 dark:border-gray-800 text-center text-sm text-gray-600 dark:text-gray-400">
+            Feito por: <i>Márcio Fernando Maia - Todos os direitos reservados - 2025</i>
+        </footer>
+    </div>
+
+    <script>
+        // Detecção de dark mode
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Variáveis globais
+        let allResults = [];
+        let combinacoesAnalise = {};
+        let ultimoConcurso = 0;
+        let isLoading = false;
+        let tamanhoAtual = 9; // Valor padrão - combinações com 9 dígitos
+
+        // Elementos do DOM
+        const loadButton = document.getElementById('loadButton');
+        const analisarCombinacoesBtn = document.getElementById('analisarCombinacoes');
+        const toggleThemeButton = document.getElementById('toggleThemeButton');
+        const tamanhoComboSelect = document.getElementById('tamanhoCombo');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const completedMessage = document.getElementById('completedMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const combinacoesAtrasadasDiv = document.getElementById('combinacoesAtrasadas');
+        const estatisticasGeraisDiv = document.getElementById('estatisticasGerais');
+        const todasCombinacoesBody = document.getElementById('todasCombinacoesBody');
+        const ultimosResultadosBody = document.getElementById('ultimosResultadosBody');
+        const lastUpdateTimeSpan = document.getElementById('lastUpdateTime');
+
+        // APIs para "Dia de Sorte" lottery
+        const API_CONFIG = {
+            // Available APIs for "Dia de Sorte"
+            DIA_DE_SORTE_STATIC: {
+                url: "https://servicebus2.caixa.gov.br/portaldeloterias/api/diadesorte",
+                description: "API Oficial da Caixa"
+            },
+            DIA_DE_SORTE_LOTERIA_FREE: {
+                url: "https://loteriascaixa-api.herokuapp.com/api/dia-de-sorte",
+                description: "API Loteria Completa (todos os concursos)"
+            },
+            DIA_DE_SORTE_CONCURSO: (numero) => {
+                return {
+                    url: `https://servicebus2.caixa.gov.br/portaldeloterias/api/diadesorte/${numero}`,
+                    description: `API Oficial Caixa - Concurso ${numero}`
+                };
+            },
+            // CORS proxy services
+            PROXIES: [
+                '',  // First try direct
+                'https://corsproxy.io/?',
+                'https://api.allorigins.win/raw?url=',
+                'https://cors-anywhere.herokuapp.com/',
+                'https://api.codetabs.com/v1/proxy?quest='
+            ]
+        };
+
+        // ===== Helper Functions =====
+
+        // Função para formatar data no padrão DD/MM/YYYY
+        function formatarData(dataStr) {
+            if (!dataStr) return '';
+            const parts = dataStr.split('/');
+            if (parts.length !== 3) return dataStr;
+            return `${parts[0]}/${parts[1]}/${parts[2]}`;
+        }
+
+        // Função para calcular a mediana de um array de números
+        function calcularMediana(arr) {
+            if (arr.length === 0) return 0;
+            const sorted = [...arr].sort((a, b) => a - b);
+            const mid = Math.floor(sorted.length / 2);
+            return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+        }
+
+        // Função para formatar número com separadores de milhar
+        function formatarNumero(num) {
+            return num.toLocaleString('pt-BR');
+        }
+
+        // Função para calcular o potencial de uma combinação
+        function calcularPotencial(combo, mediaGeral) {
+            if (!combo.mediaIntervalos || typeof combo.concursosSemAparecer !== 'number') {
+                return 0;
+            }
+            
+            // 1. Quanto do intervalo médio já passou?
+            const fatorIntervalo = Math.min(combo.concursosSemAparecer / combo.mediaIntervalos, 2);
+            
+            // 2. Quão frequente a combinação é?
+            const fatorFrequencia = Math.min(combo.ocorrencias / 30, 1);
+            
+            // 3. Estabilidade (menor variação é melhor)
+            const variacao = combo.maiorIntervalo && combo.menorIntervalo 
+                ? (combo.maiorIntervalo - combo.menorIntervalo) / combo.mediaIntervalos
+                : 1;
+            const fatorEstabilidade = Math.max(0, 1 - (variacao / 2));
+            
+            // Calcular potencial (60% intervalo, 25% frequência, 15% estabilidade)
+            const potencial = (
+                (fatorIntervalo * 0.6) + 
+                (fatorFrequencia * 0.25) + 
+                (fatorEstabilidade * 0.15)
+            );
+            
+            return Math.min(1, Math.max(0, potencial));
+        }
+
+        // Função para obter classe de status com base no potencial
+        function getStatusClass(potencial) {
+            if (potencial >= 0.7) return 'combinacao-atrasada';
+            if (potencial >= 0.4) return 'combinacao-media';
+            return 'combinacao-recente';
+        }
+
+        // Função para obter texto de status com base no potencial
+        function getStatusText(potencial) {
+            if (potencial >= 0.7) return 'ALTO';
+            if (potencial >= 0.4) return 'MÉDIO';
+            return 'BAIXO';
+        }
+
+        // Função para obter cor de status com base no potencial
+        function getStatusColor(potencial) {
+            if (potencial >= 0.7) return 'text-red-600 dark:text-red-400';
+            if (potencial >= 0.4) return 'text-yellow-600 dark:text-yellow-400';
+            return 'text-green-600 dark:text-green-400';
+        }
+
+        // ===== Funções Matemáticas e de Combinação =====
+
+        // Função para calcular fatorial
+        function factorial(n) {
+            if (n === 0 || n === 1) return 1;
+            let result = 1;
+            for (let i = 2; i <= n; i++) {
+                result *= i;
+            }
+            return result;
+        }
+
+        // Função para calcular combinação (n escolhe k)
+        function comb(n, k) {
+            if (k < 0 || k > n) return 0;
+            if (k === 0 || k === n) return 1;
+            
+            // Otimização para números grandes
+            let result = 1;
+            for (let i = 1; i <= k; i++) {
+                result *= (n - (k - i));
+                result /= i;
+            }
+            return Math.round(result);
+        }
+
+        // Função para gerar todas as combinações possíveis
+        function gerarCombinacoes(conjunto, tamanho) {
+            const combinacoes = [];
+            
+            function combinar(inicio, atual) {
+                if (atual.length === tamanho) {
+                    combinacoes.push([...atual]);
+                    return;
+                }
+                
+                for (let i = inicio; i < conjunto.length; i++) {
+                    atual.push(conjunto[i]);
+                    combinar(i + 1, atual);
+                    atual.pop();
+                }
+            }
+            
+            combinar(0, []);
+            return combinacoes;
+        }
+
+        // ===== Funções para buscar e processar dados =====
+
+        // Função para buscar dados da API com CORS proxy
+        async function fetchWithProxy(url, attempts = 0) {
+            const corsProxies = API_CONFIG.PROXIES;
+            
+            if (attempts >= corsProxies.length) {
+                throw new Error('All CORS proxies failed');
+            }
+            
+            try {
+                // Some proxies need different URL encoding
+                let proxyUrl;
+                if (corsProxies[attempts].includes('?url=') || corsProxies[attempts].includes('?quest=')) {
+                    proxyUrl = corsProxies[attempts] + encodeURIComponent(url);
+                } else {
+                    proxyUrl = corsProxies[attempts] + url;
+                }
+                
+                console.log(`Trying proxy ${attempts + 1}/${corsProxies.length}: ${proxyUrl}`);
+                
+                const response = await fetch(proxyUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.log(`Proxy ${attempts + 1} failed: ${error.message}`);
+                // Try next proxy
+                if (attempts < corsProxies.length - 1) {
+                    return fetchWithProxy(url, attempts + 1);
+                } else {
+                    throw error;
+                }
+            }
+        }
+
+        // Função para obter o número do último concurso
+        async function getLatestConcursoNumber() {
+            try {
+                const lastConcursoData = await fetchWithProxy(API_CONFIG.DIA_DE_SORTE_STATIC.url);
+                if (lastConcursoData && lastConcursoData.numero) {
+                    return parseInt(lastConcursoData.numero);
+                }
+                
+                throw new Error("Could not get the latest contest number");
+            } catch (error) {
+                console.error(`Error getting latest contest: ${error.message}`);
+                // Valor padrão em caso de falha
+                return 800;
+            }
+        }
+
+        // Função para buscar todos os concursos disponíveis
+        async function fetchAllConcursos() {
+            try {
+                console.log("Trying to fetch all contests from complete API...");
+                
+                const allResults = [];
+                
+                try {
+                    // First, try the Loteria Free API - which should have ALL contests in a single call
+                    console.log("Trying Loteria Free API...");
+                    const data = await fetchWithProxy(API_CONFIG.DIA_DE_SORTE_LOTERIA_FREE.url);
+                    
+                    if (Array.isArray(data) && data.length > 0) {
+                        // Process data from Loteria Free API
+                        for (const concurso of data) {
+                            if (concurso.concurso && concurso.data && concurso.dezenas) {
+                                allResults.push({
+                                    concurso: concurso.concurso.toString(),
+                                    data: concurso.data,
+                                    dezenas: concurso.dezenas
+                                });
+                            }
+                        }
+                        
+                        console.log(`Loteria Free API returned ${allResults.length} contests!`);
+                        
+                        // If we have a good number of contests, return them
+                        if (allResults.length > 200) {
+                            return allResults;
+                        }
+                    }
+                } catch (e) {
+                    console.error(`Error with Loteria Free API: ${e.message}`);
+                }
+                
+                // LAST RESORT - If no full API works, try to fetch contest by contest from the official Caixa API
+                if (allResults.length < 200) {
+                    console.log("Complete APIs failed. Trying to fetch contest by contest...");
+                    
+                    // Reset results to avoid duplicates
+                    allResults.length = 0;
+                    
+                    // Get the number of the latest contest
+                    const ultimoConcurso = await getLatestConcursoNumber();
+                    console.log(`Latest contest identified: ${ultimoConcurso}`);
+                    
+                    // Set up progress
+                    loadingMessage.textContent = 'Buscando concursos um a um...';
+                    
+                    // IMPORTANT: "Dia de Sorte" started at contest 1
+                    const concursoInicial = 1;
+                    
+                    // To avoid overloading the Caixa API, let's make batch requests
+                    // Divide into batches of 10 contests
+                    const batchSize = 10;
+                    
+                    for (let i = concursoInicial; i <= ultimoConcurso; i += batchSize) {
+                        const batchEnd = Math.min(i + batchSize - 1, ultimoConcurso);
+                        loadingMessage.textContent = `Buscando concursos ${i} a ${batchEnd} de ${ultimoConcurso}...`;
+                        
+                        // Create an array of promises for each contest in the batch
+                        const requests = [];
+                        for (let concursoNum = i; concursoNum <= batchEnd; concursoNum++) {
+                            // Add a small delay to avoid overloading
+                            const delay = (concursoNum - i) * 100; // 100ms between each request
+                            
+                            requests.push(
+                                new Promise(resolve => {
+                                    setTimeout(async () => {
+                                        try {
+                                            const url = API_CONFIG.DIA_DE_SORTE_CONCURSO(concursoNum).url;
+                                            const concursoData = await fetchWithProxy(url);
+                                            
+                                            if (concursoData && concursoData.numero && concursoData.dataApuracao && concursoData.listaDezenas) {
+                                                resolve({
+                                                    concurso: concursoData.numero.toString(),
+                                                    data: concursoData.dataApuracao,
+                                                    dezenas: concursoData.listaDezenas
+                                                });
+                                            } else {
+                                                resolve(null);
+                                            }
+                                        } catch (error) {
+                                            console.error(`Error fetching contest ${concursoNum}: ${error.message}`);
+                                            resolve(null);
+                                        }
+                                    }, delay);
+                                })
+                            );
+                        }
+                        
+                        // Wait for all requests in the batch
+                        const results = await Promise.all(requests);
+                        
+                        // Add valid results to the final array
+                        for (const result of results) {
+                            if (result) {
+                                allResults.push(result);
+                            }
+                        }
+                        
+                        // Small pause between batches to avoid overloading the API
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+                    
+                    console.log(`Contest-by-contest search completed. Total: ${allResults.length} contests`);
+                }
+                
+                // Sort contests by number
+                allResults.sort((a, b) => parseInt(a.concurso) - parseInt(b.concurso));
+                
+                return allResults;
+                
+            } catch (error) {
+                console.error(`Error fetching all contests: ${error.message}`);
+                throw error;
+            }
+        }
+
+        // Função principal para buscar e processar os resultados do Dia de Sorte
+        async function fetchDiaDeSorteResults() {
+            // Reset UI and show loading state
+            loadingMessage.textContent = 'Buscando dados reais da loteria Dia de Sorte...';
+            loadingMessage.classList.remove('hidden');
+            completedMessage.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            isLoading = true;
+            loadButton.disabled = true;
+            
+            try {
+                // 1. Fetch all contests
+                console.log("Starting search for all contests...");
+                const concursos = await fetchAllConcursos();
+                
+                if (!concursos || concursos.length === 0) {
+                    throw new Error("Could not get data for any contest");
+                }
+                
+                console.log(`Obtained ${concursos.length} contests in total`);
+                
+                // 2. Process contest data
+                processContestData(concursos);
+                
+                // 3. Update UI
+                updateUI();
+                
+                // Show success message
+                loadingMessage.classList.add('hidden');
+                completedMessage.classList.remove('hidden');
+                completedMessage.textContent = `Carregamento concluído! ${allResults.length} concursos foram carregados.`;
+                
+                // Update timestamp
+                const lastUpdateTime = new Date();
+                const formattedTime = lastUpdateTime.toLocaleString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                lastUpdateTimeSpan.textContent = `Dados atualizados em: ${formattedTime}`;
+                
+                // Realizar a análise de combinações automaticamente
+                analisarCombinacoes();
+                
+                return true;
+                
+            } catch (error) {
+                console.error("Error loading data:", error);
+                errorMessage.classList.remove('hidden');
+                errorMessage.textContent = `Erro ao carregar os dados: ${error.message}`;
+                loadingMessage.classList.add('hidden');
+                
+                return false;
+            } finally {
+                // Re-enable button
+                loadButton.disabled = false;
+                isLoading = false;
+            }
+        }
+
+        // Processar os dados dos concursos
+        function processContestData(concursos) {
+            allResults = [];
+            
+            for (const concurso of concursos) {
+                // Verificar se temos os dados necessários
+                if (!concurso.concurso || !concurso.dezenas || !Array.isArray(concurso.dezenas) || concurso.dezenas.length === 0) {
+                    continue;
+                }
+                
+                // Extrair dígitos únicos dos números sorteados
+                const digitosUnicosSet = new Set();
+                for (const dezena of concurso.dezenas) {
+                    const dezenaStr = dezena.toString();
+                    
+                    for (const digito of dezenaStr) {
+                        if (/\d/.test(digito)) { // Garantir que é um dígito
+                            digitosUnicosSet.add(parseInt(digito));
+                        }
+                    }
+                }
+                
+                // Converter para arrays e ordenar
+                const digitosUnicos = Array.from(digitosUnicosSet).sort((a, b) => a - b);
+                
+                allResults.push({
+                    concurso: concurso.concurso,
+                    data: concurso.data,
+                    dezenas: concurso.dezenas,
+                    digitos: digitosUnicos,
+                    contagemDigitos: digitosUnicosSet.size
+                });
+            }
+            
+            // Ordenar por número de concurso (ascendente)
+            allResults.sort((a, b) => parseInt(a.concurso) - parseInt(b.concurso));
+            
+            // Atualizar o número do último concurso
+            if (allResults.length > 0) {
+                ultimoConcurso = parseInt(allResults[allResults.length - 1].concurso);
+            }
+            
+            console.log(`Processed ${allResults.length} contests`);
+        }
+
+        // Atualizar a interface após carregar os dados
+        function updateUI() {
+            // Atualizar últimos resultados
+            atualizarUltimosResultados();
+            
+            // Atualizar estatísticas gerais
+            atualizarEstatisticasGerais();
+        }
+
+        // Função para atualizar os últimos resultados na tabela
+        function atualizarUltimosResultados() {
+            if (!allResults || allResults.length === 0) {
+                ultimosResultadosBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                            Nenhum resultado disponível
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            // Pegar os 10 últimos concursos
+            const ultimosResultados = [...allResults].reverse().slice(0, 10);
+            
+            ultimosResultadosBody.innerHTML = '';
+            
+            for (const resultado of ultimosResultados) {
+                const row = document.createElement('tr');
+                
+                // Aplicar destaque para o concurso mais recente
+                if (parseInt(resultado.concurso) === ultimoConcurso) {
+                    row.classList.add('bg-blue-50', 'dark:bg-blue-900/20');
+                }
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap font-medium">${resultado.concurso}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${formatarData(resultado.data)}</td>
+                    <td class="px-6 py-4">${resultado.dezenas.join(' - ')}</td>
+                    <td class="px-6 py-4">
+                        <div class="flex flex-wrap gap-1">
+                            ${resultado.digitos.map(d => `
+                                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary text-white text-xs font-bold">
+                                    ${d}
+                                </span>
+                            `).join('')}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">${resultado.contagemDigitos}</td>
+                `;
+                
+                ultimosResultadosBody.appendChild(row);
+            }
+        }
+
+        // Função para atualizar estatísticas gerais
+        function atualizarEstatisticasGerais() {
+            if (!allResults || allResults.length === 0) {
+                estatisticasGeraisDiv.innerHTML = `
+                    <div class="text-center text-gray-500 dark:text-gray-400 py-8">
+                        Nenhum dado disponível para estatísticas
+                    </div>
+                `;
+                return;
+            }
+            
+            // Calcular distribuição por quantidade de dígitos
+            const distribuicaoQtd = {};
+            for (const resultado of allResults) {
+                const qtd = resultado.contagemDigitos;
+                distribuicaoQtd[qtd] = (distribuicaoQtd[qtd] || 0) + 1;
+            }
+            
+            // Calcular frequência de cada dígito
+            const frequenciaDigitos = {};
+            for (let i = 0; i <= 9; i++) {
+                frequenciaDigitos[i] = 0;
+            }
+            
+            for (const resultado of allResults) {
+                for (const digito of resultado.digitos) {
+                    frequenciaDigitos[digito]++;
+                }
+            }
+            
+            // Ordenar por frequência
+            const digitosOrdenados = Object.entries(frequenciaDigitos)
+                .sort((a, b) => b[1] - a[1]);
+            
+            // Montar HTML das estatísticas
+            estatisticasGeraisDiv.innerHTML = `
+                <div class="mb-6">
+                    <h3 class="font-semibold text-lg mb-3">Últimos Sorteios</h3>
+                    <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-4">
+                        <div class="flex justify-between mb-2">
+                            <span>Último concurso:</span>
+                            <span class="font-medium">${ultimoConcurso}</span>
+                        </div>
+                        <div class="flex justify-between mb-2">
+                            <span>Total de concursos:</span>
+                            <span class="font-medium">${allResults.length}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Data último sorteio:</span>
+                            <span class="font-medium">${formatarData(allResults[allResults.length - 1].data)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <h3 class="font-semibold text-lg mb-3">Distribuição por Quantidade de Dígitos</h3>
+                    <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 space-y-2">
+                        ${Object.entries(distribuicaoQtd)
+                            .sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
+                            .map(([qtd, count]) => {
+                                const porcentagem = (count / allResults.length) * 100;
+                                return `
+                                    <div>
+                                        <div class="flex justify-between mb-1">
+                                            <span>${qtd} dígitos:</span>
+                                            <span class="font-medium">${count} (${porcentagem.toFixed(1)}%)</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                                            <div class="bg-primary h-2 rounded-full" style="width: ${porcentagem}%"></div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="font-semibold text-lg mb-3">Frequência de Dígitos</h3>
+                    <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-4">
+                        <div class="grid grid-cols-5 gap-2">
+                            ${digitosOrdenados.map(([digito, count]) => {
+                                const porcentagem = (count / allResults.length) * 100;
+                                return `
+                                    <div class="flex flex-col items-center">
+                                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white font-bold mb-1">
+                                            ${digito}
+                                        </span>
+                                        <span class="text-sm font-medium">${count}</span>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">${porcentagem.toFixed(1)}%</span>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ===== Funções de análise de combinações =====
+
+        // Analisar combinações de dígitos
+        function analisarCombinacoes() {
+            if (!allResults || allResults.length === 0) {
+                alert('É necessário carregar os dados primeiro.');
+                return;
+            }
+            
+            // Mostrar loading
+            loadingMessage.textContent = 'Analisando combinações...';
+            loadingMessage.classList.remove('hidden');
+            completedMessage.classList.add('hidden');
+            
+            try {
+                // Obter tamanho da combinação selecionado
+                tamanhoAtual = parseInt(tamanhoComboSelect.value);
+                
+                // Listar todos os dígitos possíveis (0-9)
+                const todosDigitos = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+                
+                // Gerar todas as combinações possíveis com o tamanho selecionado
+                const todasCombinacoesPossiveis = gerarCombinacoes(todosDigitos, tamanhoAtual);
+                
+                console.log(`Generated ${todasCombinacoesPossiveis.length} possible combinations of size ${tamanhoAtual}`);
+                
+                // Inicializar objeto de análise
+                combinacoesAnalise = {};
+                
+                // Para cada combinação possível, inicializar seus dados
+                for (const combo of todasCombinacoesPossiveis) {
+                    const comboStr = combo.join(',');
+                    combinacoesAnalise[comboStr] = {
+                        combinacao: combo,
+                        ocorrencias: 0,
+                        concursos: [],
+                        intervalos: [],
+                        ultimaAparicao: 0,
+                        mediaIntervalos: 0,
+                        medianaIntervalos: 0,
+                        menorIntervalo: Infinity,
+                        maiorIntervalo: 0,
+                        concursosSemAparecer: 0,
+                        potencial: 0
+                    };
+                }
+                
+                // Analisar cada resultado para encontrar combinações
+                for (const resultado of allResults) {
+                    const digitosSet = new Set(resultado.digitos);
+                    const concursoNum = parseInt(resultado.concurso);
+                    
+                    // Verificar cada combinação possível
+                    for (const combo of todasCombinacoesPossiveis) {
+                        // Verificar se TODOS os dígitos da combinação estão presentes no resultado
+                        // (comparado com tamanho K)
+                        const todosPresentes = combo.every(d => digitosSet.has(d));
+                        
+                        if (todosPresentes) {
+                            const comboStr = combo.join(',');
+                            const analise = combinacoesAnalise[comboStr];
+                            
+                            // Atualizar ocorrências
+                            analise.ocorrencias++;
+                            analise.concursos.push(concursoNum);
+                            
+                            // Atualizar última aparição
+                            analise.ultimaAparicao = concursoNum;
+                            
+                            // Calcular intervalo desde a última aparição
+                            if (analise.concursos.length > 1) {
+                                const ultimoIdx = analise.concursos.length - 1;
+                                const intervalo = analise.concursos[ultimoIdx] - analise.concursos[ultimoIdx - 1];
+                                analise.intervalos.push(intervalo);
+                                
+                                // Atualizar estatísticas de intervalos
+                                analise.menorIntervalo = Math.min(analise.menorIntervalo, intervalo);
+                                analise.maiorIntervalo = Math.max(analise.maiorIntervalo, intervalo);
+                            }
+                        }
+                    }
+                }
+                
+                // Calcular estatísticas finais para cada combinação
+                for (const comboStr in combinacoesAnalise) {
+                    const analise = combinacoesAnalise[comboStr];
+                    
+                    // Calcular concursos sem aparecer
+                    analise.concursosSemAparecer = ultimoConcurso - analise.ultimaAparicao;
+                    
+                    // Calcular média e mediana de intervalos
+                    if (analise.intervalos.length > 0) {
+                        analise.mediaIntervalos = Math.round(
+                            analise.intervalos.reduce((sum, val) => sum + val, 0) / analise.intervalos.length
+                        );
+                        analise.medianaIntervalos = calcularMediana(analise.intervalos);
+                    }
+                    
+                    // Calcular potencial de saída da combinação
+                    analise.potencial = calcularPotencial(analise, 0);
+                }
+                
+                // Ordenar combinações por potencial (do maior para o menor)
+                const combinacoesOrdenadas = Object.values(combinacoesAnalise)
+                    .filter(c => c.ocorrencias > 0) // Filtramos apenas as que já apareceram pelo menos uma vez
+                    .sort((a, b) => b.potencial - a.potencial);
+                
+                // Exibir as combinações com maior potencial
+                exibirCombinacoesAtrasadas(combinacoesOrdenadas.slice(0, 5));
+                
+                // Preencher tabela de todas as combinações
+                preencherTabelaCombinacoes(combinacoesOrdenadas);
+                
+                // Esconder loading e mostrar mensagem de sucesso
+                loadingMessage.classList.add('hidden');
+                completedMessage.classList.remove('hidden');
+                completedMessage.textContent = 'Análise de combinações concluída!';
+                
+                setTimeout(() => {
+                    completedMessage.classList.add('hidden');
+                }, 3000);
+                
+                console.log('Combinações analisadas com sucesso!');
+                
+                return true;
+            } catch (error) {
+                console.error('Erro ao analisar combinações:', error);
+                loadingMessage.classList.add('hidden');
+                errorMessage.classList.remove('hidden');
+                errorMessage.textContent = `Erro ao analisar combinações: ${error.message}`;
+                return false;
+            }
+        }
+
+        // Função para exibir as combinações com maior potencial de saída
+        function exibirCombinacoesAtrasadas(combinacoes) {
+            if (!combinacoes || combinacoes.length === 0) {
+                combinacoesAtrasadasDiv.innerHTML = `
+                    <div class="text-center text-gray-500 dark:text-gray-400 py-8">
+                        Nenhuma combinação atrasada encontrada
+                    </div>
+                `;
+                return;
+            }
+            
+            combinacoesAtrasadasDiv.innerHTML = '';
+            
+            // Para cada combinação, criar um card de informações
+            for (const combo of combinacoes) {
+                const statusClass = getStatusClass(combo.potencial);
+                const statusText = getStatusText(combo.potencial);
+                const statusColor = getStatusColor(combo.potencial);
+                
+                // Calcular a porcentagem do intervalo atual em relação à média
+                const percentualIntervalo = combo.mediaIntervalos > 0 
+                    ? Math.round((combo.concursosSemAparecer / combo.mediaIntervalos) * 100) 
+                    : 0;
+                
+                const card = document.createElement('div');
+                card.className = `rounded-lg p-4 ${statusClass}`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h3 class="font-bold text-lg">Combinação: ${combo.combinacao.join(',')}</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                                Apareceu em ${combo.ocorrencias} sorteios
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-bold ${statusColor} text-sm">
+                                Potencial ${statusText}
+                            </span>
+                            <p class="text-sm">
+                                ${Math.round(combo.potencial * 100)}% de probabilidade
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                        <div class="bg-white dark:bg-gray-900 p-2 rounded">
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Última Aparição</p>
+                            <p class="font-medium">Concurso ${combo.ultimaAparicao}</p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-900 p-2 rounded">
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Sem Aparecer</p>
+                            <p class="font-medium">${combo.concursosSemAparecer} concursos</p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-900 p-2 rounded">
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Média</p>
+                            <p class="font-medium">${combo.mediaIntervalos} concursos</p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-900 p-2 rounded">
+                            <p class="text-xs text-gray-500 dark:text-gray-400">% do Intervalo</p>
+                            <p class="font-medium">${percentualIntervalo}%</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Barra de progresso do intervalo -->
+                    <div class="mb-1 text-xs flex justify-between">
+                        <span>Progresso do intervalo médio</span>
+                        <span>${percentualIntervalo}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mb-3">
+                        <div class="bg-primary h-2.5 rounded-full" style="width: ${Math.min(percentualIntervalo, 100)}%"></div>
+                    </div>
+                    
+                    <div class="text-sm">
+                        <p>
+                            Esta combinação costuma aparecer a cada <strong>${combo.mediaIntervalos} concursos</strong> 
+                            em média e já está há <strong>${combo.concursosSemAparecer} concursos</strong> sem aparecer.
+                            ${percentualIntervalo >= 100 ? 
+                                '<span class="font-semibold text-red-600 dark:text-red-400">Já ultrapassou o intervalo médio!</span>' : 
+                                `Alcançou <span class="font-semibold">${percentualIntervalo}%</span> do intervalo médio.`
+                            }
+                        </p>
+                    </div>
+                `;
+                
+                combinacoesAtrasadasDiv.appendChild(card);
+            }
+        }
+
+        // Função para preencher a tabela com todas as combinações
+        function preencherTabelaCombinacoes(combinacoes) {
+            if (!combinacoes || combinacoes.length === 0) {
+                todasCombinacoesBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                            Nenhuma combinação encontrada
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            todasCombinacoesBody.innerHTML = '';
+            
+            for (const combo of combinacoes) {
+                const row = document.createElement('tr');
+                
+                // Adicionar classe de acordo com o potencial
+                if (combo.potencial >= 0.7) {
+                    row.classList.add('bg-red-50', 'dark:bg-red-900/10');
+                } else if (combo.potencial >= 0.4) {
+                    row.classList.add('bg-yellow-50', 'dark:bg-yellow-900/10');
+                }
+                
+                // Calcular status e cor de status
+                const statusText = getStatusText(combo.potencial);
+                const statusColor = getStatusColor(combo.potencial);
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4">
+                        <span class="font-medium">${combo.combinacao.join(',')}</span>
+                    </td>
+                    <td class="px-6 py-4">${combo.ocorrencias}</td>
+                    <td class="px-6 py-4">Concurso ${combo.ultimaAparicao}</td>
+                    <td class="px-6 py-4">${combo.mediaIntervalos} concursos</td>
+                    <td class="px-6 py-4">${combo.concursosSemAparecer} concursos</td>
+                    <td class="px-6 py-4">
+                        <span class="font-medium ${statusColor}">${statusText}</span>
+                    </td>
+                    <td class="px-6 py-4">${Math.round(combo.potencial * 100)}%</td>
+                `;
+                
+                todasCombinacoesBody.appendChild(row);
+            }
+        }
+
+        // ===== Event Listeners =====
+
+        // Carregar dados
+        loadButton.addEventListener('click', fetchDiaDeSorteResults);
+
+        // Analisar combinações
+        analisarCombinacoesBtn.addEventListener('click', analisarCombinacoes);
+
+        // Alternar tema
+        toggleThemeButton.addEventListener('click', function() {
+            document.documentElement.classList.toggle('dark');
+        });
+
+        // Mudar tamanho da combinação
+        tamanhoComboSelect.addEventListener('change', function() {
+            if (Object.keys(combinacoesAnalise).length > 0) {
+                analisarCombinacoes();
+            }
+        });
+
+        // Carregar dados automaticamente ao iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchDiaDeSorteResults();
+        });
+    </script>
+</body>
+</html>
