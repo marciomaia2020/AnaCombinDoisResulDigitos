@@ -1,2 +1,2 @@
 # AnaCombinDoisResulDigitos
-Mistura de CombinacaoDoisDiadeSorte e ResultadosDigitosDiaDeSorte
+Mistura de CombinacaoDoisDiadeSorte e ResultadosDigitosDiaDeSorte.
