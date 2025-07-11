@@ -75,27 +75,6 @@
             box-shadow: 0 0 5px #10b981;
             animation: pulse 1.5s infinite;
         }
-        
-        /* Estilos para cabeçalhos ordenáveis */
-        .sortable-header {
-            cursor: pointer;
-            user-select: none;
-            transition: background-color 0.2s;
-        }
-        
-        .sortable-header:hover {
-            background-color: rgba(0, 0, 0, 0.05);
-        }
-        
-        .dark .sortable-header:hover {
-            background-color: rgba(255, 255, 255, 0.05);
-        }
-        
-        .sort-indicator {
-            display: inline-block;
-            margin-left: 5px;
-            font-size: 12px;
-        }
     </style>
 </head>
 
@@ -203,110 +182,30 @@
                     Lista completa de combinações possíveis e suas estatísticas
                 </p>
             </div>
-            
-            <!-- Área de filtros e busca -->
-            <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gray-50 dark:bg-gray-900/50">
-                <div class="flex flex-wrap gap-4 items-end">
-                    <!-- Campo de busca por dígitos -->
-                    <div class="flex-1 min-w-[200px]">
-                        <label for="buscaDigitos" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Buscar por dígitos
-                        </label>
-                        <input 
-                            type="text" 
-                            id="buscaDigitos" 
-                            placeholder="Ex: 1,2,3 ou 123 (busca combinações que contêm estes dígitos)"
-                            class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent"
-                        >
-                    </div>
-                    
-                    <!-- Filtro por Status -->
-                    <div>
-                        <label for="filtroStatus" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Status
-                        </label>
-                        <select id="filtroStatus" class="px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700">
-                            <option value="">Todos</option>
-                            <option value="ALTO">Alto Potencial</option>
-                            <option value="MÉDIO">Médio Potencial</option>
-                            <option value="BAIXO">Baixo Potencial</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Filtro por Probabilidade -->
-                    <div>
-                        <label for="filtroProbabilidade" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Probabilidade
-                        </label>
-                        <select id="filtroProbabilidade" class="px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700">
-                            <option value="">Todas</option>
-                            <option value="70-100">70% - 100%</option>
-                            <option value="40-69">40% - 69%</option>
-                            <option value="0-39">0% - 39%</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Ordenar por -->
-                    <div>
-                        <label for="ordenarPor" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Ordenar por
-                        </label>
-                        <select id="ordenarPor" class="px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700">
-                            <option value="probabilidade">Probabilidade (Maior)</option>
-                            <option value="ocorrencias">Ocorrências (Maior)</option>
-                            <option value="semAparecer">Concursos sem Aparecer (Maior)</option>
-                            <option value="ultimaAparicao">Última Aparição (Mais Recente)</option>
-                            <option value="mediaIntervalo">Média de Intervalo (Menor)</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Botão limpar filtros -->
-                    <div>
-                        <button id="limparFiltros" class="px-4 py-2 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 rounded-lg font-medium transition-colors duration-200">
-                            Limpar Filtros
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Contador de resultados -->
-                <div class="mt-3">
-                    <span id="contadorResultados" class="text-sm text-gray-600 dark:text-gray-400">
-                        Exibindo todas as combinações
-                    </span>
-                </div>
-            </div>
-            
             <div class="p-6 overflow-x-auto">
                 <table id="todasCombinacoesTabela" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead class="bg-gray-100 dark:bg-gray-700">
                         <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sortable-header" data-sort="combinacao">
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                 Combinação
-                                <span class="sort-indicator"></span>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sortable-header" data-sort="ocorrencias">
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                 Ocorrências
-                                <span class="sort-indicator"></span>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sortable-header" data-sort="ultimaAparicao">
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                 Última Aparição
-                                <span class="sort-indicator"></span>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sortable-header" data-sort="mediaIntervalos">
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                 Média de Intervalo
-                                <span class="sort-indicator"></span>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sortable-header" data-sort="concursosSemAparecer">
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                 Concursos Sem Aparecer
-                                <span class="sort-indicator"></span>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sortable-header" data-sort="status">
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                 Status
-                                <span class="sort-indicator"></span>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sortable-header" data-sort="potencial">
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                 Probabilidade
-                                <span class="sort-indicator">↓</span>
                             </th>
                         </tr>
                     </thead>
@@ -388,8 +287,6 @@
         let ultimoConcurso = 0;
         let isLoading = false;
         let tamanhoAtual = 9; // Valor padrão - combinações com 9 dígitos
-        let combinacoesFiltradas = []; // Array para armazenar combinações filtradas
-        let ordenacaoAtual = { campo: 'potencial', direcao: 'desc' }; // Ordenação padrão
 
         // Elementos do DOM
         const loadButton = document.getElementById('loadButton');
@@ -404,14 +301,6 @@
         const todasCombinacoesBody = document.getElementById('todasCombinacoesBody');
         const ultimosResultadosBody = document.getElementById('ultimosResultadosBody');
         const lastUpdateTimeSpan = document.getElementById('lastUpdateTime');
-        
-        // Elementos de filtros
-        const buscaDigitosInput = document.getElementById('buscaDigitos');
-        const filtroStatusSelect = document.getElementById('filtroStatus');
-        const filtroProbabilidadeSelect = document.getElementById('filtroProbabilidade');
-        const ordenarPorSelect = document.getElementById('ordenarPor');
-        const limparFiltrosBtn = document.getElementById('limparFiltros');
-        const contadorResultados = document.getElementById('contadorResultados');
 
         // APIs para "Dia de Sorte" lottery
         const API_CONFIG = {
@@ -510,159 +399,6 @@
             if (potencial >= 0.7) return 'text-red-600 dark:text-red-400';
             if (potencial >= 0.4) return 'text-yellow-600 dark:text-yellow-400';
             return 'text-green-600 dark:text-green-400';
-        }
-
-        // ===== Funções de Filtros e Busca =====
-
-        // Função para filtrar combinações
-        function filtrarCombinacoes() {
-            const buscaDigitos = buscaDigitosInput.value.trim();
-            const filtroStatus = filtroStatusSelect.value;
-            const filtroProbabilidade = filtroProbabilidadeSelect.value;
-
-            // Começar com todas as combinações
-            let combinacoesFiltradas = Object.values(combinacoesAnalise)
-                .filter(c => c.ocorrencias > 0);
-
-            // Filtrar por dígitos se especificado
-            if (buscaDigitos) {
-                const digitosBusca = parseDigitosBusca(buscaDigitos);
-                if (digitosBusca.length > 0) {
-                    combinacoesFiltradas = combinacoesFiltradas.filter(combo => {
-                        return digitosBusca.every(digito => combo.combinacao.includes(digito));
-                    });
-                }
-            }
-
-            // Filtrar por status
-            if (filtroStatus) {
-                combinacoesFiltradas = combinacoesFiltradas.filter(combo => {
-                    return getStatusText(combo.potencial) === filtroStatus;
-                });
-            }
-
-            // Filtrar por probabilidade
-            if (filtroProbabilidade) {
-                const [min, max] = filtroProbabilidade.split('-').map(v => parseInt(v));
-                combinacoesFiltradas = combinacoesFiltradas.filter(combo => {
-                    const prob = Math.round(combo.potencial * 100);
-                    return prob >= min && prob <= max;
-                });
-            }
-
-            // Aplicar ordenação
-            aplicarOrdenacao(combinacoesFiltradas);
-
-            // Atualizar tabela e contador
-            preencherTabelaCombinacoes(combinacoesFiltradas);
-            atualizarContadorResultados(combinacoesFiltradas.length, Object.values(combinacoesAnalise).filter(c => c.ocorrencias > 0).length);
-
-            return combinacoesFiltradas;
-        }
-
-        // Função para analisar a busca de dígitos
-        function parseDigitosBusca(busca) {
-            // Remove espaços e caracteres especiais
-            busca = busca.replace(/[^0-9,]/g, '');
-            
-            let digitos = [];
-            
-            // Se contém vírgula, dividir por vírgula
-            if (busca.includes(',')) {
-                digitos = busca.split(',')
-                    .map(d => parseInt(d.trim()))
-                    .filter(d => !isNaN(d) && d >= 0 && d <= 9);
-            } else {
-                // Se não contém vírgula, cada caractere é um dígito
-                digitos = busca.split('')
-                    .map(d => parseInt(d))
-                    .filter(d => !isNaN(d) && d >= 0 && d <= 9);
-            }
-            
-            // Remover duplicatas
-            return [...new Set(digitos)];
-        }
-
-        // Função para aplicar ordenação
-        function aplicarOrdenacao(combinacoes) {
-            const { campo, direcao } = ordenacaoAtual;
-            
-            combinacoes.sort((a, b) => {
-                let valorA, valorB;
-                
-                switch (campo) {
-                    case 'combinacao':
-                        valorA = a.combinacao.join(',');
-                        valorB = b.combinacao.join(',');
-                        break;
-                    case 'ocorrencias':
-                        valorA = a.ocorrencias;
-                        valorB = b.ocorrencias;
-                        break;
-                    case 'ultimaAparicao':
-                        valorA = a.ultimaAparicao;
-                        valorB = b.ultimaAparicao;
-                        break;
-                    case 'mediaIntervalos':
-                        valorA = a.mediaIntervalos;
-                        valorB = b.mediaIntervalos;
-                        break;
-                    case 'concursosSemAparecer':
-                        valorA = a.concursosSemAparecer;
-                        valorB = b.concursosSemAparecer;
-                        break;
-                    case 'status':
-                        valorA = getStatusText(a.potencial);
-                        valorB = getStatusText(b.potencial);
-                        break;
-                    case 'potencial':
-                    default:
-                        valorA = a.potencial;
-                        valorB = b.potencial;
-                        break;
-                }
-                
-                // Comparação
-                let resultado = 0;
-                if (valorA < valorB) resultado = -1;
-                else if (valorA > valorB) resultado = 1;
-                
-                return direcao === 'asc' ? resultado : -resultado;
-            });
-        }
-
-        // Função para atualizar contador de resultados
-        function atualizarContadorResultados(filtrados, total) {
-            if (filtrados === total) {
-                contadorResultados.textContent = `Exibindo todas as ${total} combinações`;
-            } else {
-                contadorResultados.textContent = `Exibindo ${filtrados} de ${total} combinações`;
-            }
-        }
-
-        // Função para limpar filtros
-        function limparFiltros() {
-            buscaDigitosInput.value = '';
-            filtroStatusSelect.value = '';
-            filtroProbabilidadeSelect.value = '';
-            ordenarPorSelect.value = 'probabilidade';
-            ordenacaoAtual = { campo: 'potencial', direcao: 'desc' };
-            
-            if (Object.keys(combinacoesAnalise).length > 0) {
-                filtrarCombinacoes();
-            }
-        }
-
-        // Função para atualizar indicadores de ordenação nos cabeçalhos
-        function atualizarIndicadoresOrdenacao() {
-            document.querySelectorAll('.sort-indicator').forEach(indicator => {
-                indicator.textContent = '';
-            });
-            
-            const headerAtivo = document.querySelector(`[data-sort="${ordenacaoAtual.campo}"] .sort-indicator`);
-            if (headerAtivo) {
-                headerAtivo.textContent = ordenacaoAtual.direcao === 'desc' ? '↓' : '↑';
-            }
         }
 
         // ===== Funções Matemáticas e de Combinação =====
@@ -1150,8 +886,7 @@
         // Analisar combinações de dígitos
         function analisarCombinacoes() {
             if (!allResults || allResults.length === 0) {
-                // Criar modal personalizado
-                showCustomAlert('É necessário carregar os dados primeiro.');
+                alert('É necessário carregar os dados primeiro.');
                 return;
             }
             
@@ -1256,8 +991,8 @@
                 // Exibir as combinações com maior potencial
                 exibirCombinacoesAtrasadas(combinacoesOrdenadas.slice(0, 5));
                 
-                // Preencher tabela com filtros aplicados
-                filtrarCombinacoes();
+                // Preencher tabela de todas as combinações
+                preencherTabelaCombinacoes(combinacoesOrdenadas);
                 
                 // Esconder loading e mostrar mensagem de sucesso
                 loadingMessage.classList.add('hidden');
@@ -1374,7 +1109,7 @@
                 todasCombinacoesBody.innerHTML = `
                     <tr>
                         <td colspan="7" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
-                            Nenhuma combinação encontrada com os filtros aplicados
+                            Nenhuma combinação encontrada
                         </td>
                     </tr>
                 `;
@@ -1415,23 +1150,6 @@
             }
         }
 
-        // Função para criar modal de alerta customizado
-        function showCustomAlert(message) {
-            const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-            modal.innerHTML = `
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full mx-4">
-                    <p class="text-gray-700 dark:text-gray-300 mb-4">${message}</p>
-                    <div class="flex justify-end">
-                        <button class="px-4 py-2 bg-primary text-white hover:bg-secondary rounded" onclick="this.closest('.fixed').remove()">
-                            OK
-                        </button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-        }
-
         // ===== Event Listeners =====
 
         // Carregar dados
@@ -1450,75 +1168,6 @@
             if (Object.keys(combinacoesAnalise).length > 0) {
                 analisarCombinacoes();
             }
-        });
-
-        // Event listeners para filtros
-        buscaDigitosInput.addEventListener('input', filtrarCombinacoes);
-        filtroStatusSelect.addEventListener('change', filtrarCombinacoes);
-        filtroProbabilidadeSelect.addEventListener('change', filtrarCombinacoes);
-        
-        ordenarPorSelect.addEventListener('change', function() {
-            const valor = this.value;
-            switch (valor) {
-                case 'probabilidade':
-                    ordenacaoAtual = { campo: 'potencial', direcao: 'desc' };
-                    break;
-                case 'ocorrencias':
-                    ordenacaoAtual = { campo: 'ocorrencias', direcao: 'desc' };
-                    break;
-                case 'semAparecer':
-                    ordenacaoAtual = { campo: 'concursosSemAparecer', direcao: 'desc' };
-                    break;
-                case 'ultimaAparicao':
-                    ordenacaoAtual = { campo: 'ultimaAparicao', direcao: 'desc' };
-                    break;
-                case 'mediaIntervalo':
-                    ordenacaoAtual = { campo: 'mediaIntervalos', direcao: 'asc' };
-                    break;
-            }
-            atualizarIndicadoresOrdenacao();
-            filtrarCombinacoes();
-        });
-
-        // Limpar filtros
-        limparFiltrosBtn.addEventListener('click', limparFiltros);
-
-        // Clique nos cabeçalhos para ordenar
-        document.querySelectorAll('.sortable-header').forEach(header => {
-            header.addEventListener('click', function() {
-                const campo = this.dataset.sort;
-                
-                // Se clicar no mesmo campo, inverte a direção
-                if (ordenacaoAtual.campo === campo) {
-                    ordenacaoAtual.direcao = ordenacaoAtual.direcao === 'desc' ? 'asc' : 'desc';
-                } else {
-                    // Novo campo, usar direção padrão
-                    ordenacaoAtual.campo = campo;
-                    ordenacaoAtual.direcao = campo === 'mediaIntervalos' ? 'asc' : 'desc';
-                }
-                
-                // Atualizar select
-                switch (campo) {
-                    case 'potencial':
-                        ordenarPorSelect.value = 'probabilidade';
-                        break;
-                    case 'ocorrencias':
-                        ordenarPorSelect.value = 'ocorrencias';
-                        break;
-                    case 'concursosSemAparecer':
-                        ordenarPorSelect.value = 'semAparecer';
-                        break;
-                    case 'ultimaAparicao':
-                        ordenarPorSelect.value = 'ultimaAparicao';
-                        break;
-                    case 'mediaIntervalos':
-                        ordenarPorSelect.value = 'mediaIntervalo';
-                        break;
-                }
-                
-                atualizarIndicadoresOrdenacao();
-                filtrarCombinacoes();
-            });
         });
 
         // Carregar dados automaticamente ao iniciar
